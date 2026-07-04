@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Lanzador del reproductor de musica.
+# Uso:  ./reproductor            (usa ~/Música)
+#       ./reproductor /otra/ruta (usa otra carpeta)
+# resolver enlaces simbolicos (p.ej. invocado como 'music' desde el PATH)
+SCRIPT="$(readlink -f "$0")"
+cd "$(dirname "$SCRIPT")" || exit 1
+exec python3 player.py "$@"

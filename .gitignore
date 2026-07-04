@@ -1,0 +1,12 @@
+# Bytecode de Python
+__pycache__/
+*.py[cod]
+
+# Configuración local de Claude Code (específica de la máquina)
+.claude/settings.local.json
+
+# Datos de usuario del reproductor (por si alguien los deja en el repo)
+# Normalmente viven en ~/.local/share/reproductor/
+*.m3u
+conteo.json
+estado.json
