@@ -102,9 +102,8 @@ it checks `player.is_finished()` to auto-advance the queue, redraws, then reads 
 - **Text prompt mode** (`self.prompt`/`self.prompt_text`, used for naming a new playlist): when
   `prompt is not None` the main loop routes keys into `prompt_text` (Enter → `_prompt_done()`,
   ESC cancels) and `_draw()` shows it in the status bar.
-- **`App._play()` is the single playback entry point** (wraps `player.play`): sets the ▶ status,
-  bumps the play count, and fires a best-effort `notify-send` desktop notification. Call it
-  instead of `player.play()` directly.
+- **`App._play()` is the single playback entry point** (wraps `player.play`): sets the ▶ status
+  and bumps the play count. Call it instead of `player.play()` directly.
 - **Seek** (`,`/`.` = ±10s, `<`/`>` = ±60s): `ffplay` can't seek a live process, so
   `AudioPlayer.seek()` computes the target from `elapsed()` and relaunches via
   `play(path, start=pos)`, which passes `-ss` and back-dates `_start`. `play()` skips the

@@ -15,7 +15,6 @@ Funciones:
   - Adelantar/retroceder dentro de la pista, silencio rapido, vista de cola.
   - Continuar la sesion anterior donde quedo (carpeta, volumen y pista).
   - Temporizador de apagado, contador de reproducciones, tags ID3 reales.
-  - Notificacion de escritorio al cambiar de pista (si hay notify-send).
   - Pausa, siguiente, anterior, volumen, barra de progreso.
 
 Controles:
@@ -420,8 +419,13 @@ class AudioPlayer:
         if not self.proc:
             return
         try:
+            # LC_ALL=C fuerza la salida en ingles ("Sink Input #"); si no, en
+            # sistemas localizados (p.ej. espanol -> "Entrada del destino #")
+            # el encabezado no coincide y el volumen nunca se aplica.
+            env = dict(os.environ, LC_ALL="C")
             out = subprocess.run(["pactl", "list", "sink-inputs"],
-                                 capture_output=True, text=True, timeout=3).stdout
+                                 capture_output=True, text=True, timeout=3,
+                                 env=env).stdout
             index = None
             cur = None
             for line in out.splitlines():
@@ -433,7 +437,7 @@ class AudioPlayer:
             if index is not None:
                 vol = 0 if self.muted else self.volume
                 subprocess.run(["pactl", "set-sink-input-volume", index, f"{vol}%"],
-                               capture_output=True, timeout=3)
+                               capture_output=True, timeout=3, env=env)
         except Exception:
             pass
 
@@ -618,22 +622,11 @@ class App:
         self._play_current()
 
     def _play(self, track, start=0.0):
-        """Punto central de arranque: reproduce, anuncia, cuenta y notifica."""
+        """Punto central de arranque: reproduce, anuncia y cuenta."""
         self.player.play(track, start=start)
         self.status = "▶ " + self.track_label(track)
         self.counts[track] = self.counts.get(track, 0) + 1
         save_json(CNT_FILE, self.counts)
-        self._notify(track)
-
-    def _notify(self, track):
-        """Notificacion de escritorio al cambiar de pista (best-effort)."""
-        try:
-            subprocess.Popen(
-                ["notify-send", "-a", "reproductor", "-t", "3000",
-                 "♫ " + self.track_label(track)],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        except Exception:
-            pass
 
     def _play_current(self):
         track = self.queue.current() if self.queue else None
